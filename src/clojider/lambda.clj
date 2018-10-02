@@ -3,16 +3,20 @@
             [clojure.java.io :as io]
             [clj-time.core :refer [millis]]
             [clj-gatling.pipeline :as pipeline]
-            [cheshire.core :refer [generate-stream parse-stream]]))
+            [clj-gatling.schema :as schema]
+            [cheshire.core :refer [generate-stream parse-stream]]
+            [schema.core :as s]))
 
 (defn- run-simulation [input]
   (let [collector-as-symbol (fn [reporter]
-                              (update reporter :collector read-string))]
-    (pipeline/simulation-runner (read-string (:simulation input))
-                                (-> (:options input)
-                                    (update :duration millis)
-                                    (assoc :results-dir (System/getProperty "java.io.tmpdir"))
-                                    (update :reporters #(map collector-as-symbol %))))))
+                              (-> reporter
+                                (update :collector read-string)
+                                (update :reporter-key keyword)))
+        options (-> (:options input)
+                  (update :duration millis)
+                  (assoc :results-dir (System/getProperty "java.io.tmpdir"))
+                  (update :reporters #(map collector-as-symbol %)))]
+    (pipeline/simulation-runner (read-string (:simulation input)) options)))
 
 (deflambdafn clojider.LambdaFn
   [is os ctx]
