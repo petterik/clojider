@@ -106,7 +106,8 @@
                                     timeout-in-ms
                                     duration
                                     region
-                                    throttle]
+                                    throttle
+                                    parallelism]
                              :or {node-count 1}}]
   (let [in (async/chan 90000)
         lambdas-per-second throttle
@@ -126,6 +127,7 @@
                                  :reporters     [(no-op-reporter)]
                                  :duration      duration
                                  :nodes         node-count
+                                 :parallelism   parallelism
                                  :executor      (fn [node-id simulation options]
                                                   (let [ch (async/chan)
                                                         executor-fn

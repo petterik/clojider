@@ -29,6 +29,9 @@
     :id :throttle
     :default 0
     :parse-fn #(Integer/parseInt %)]
+   ["-p" "--parallelism PARALLELISM" "Defines how many threads are created to spawn lambdas."
+    :default 10
+    :parse-fn #(Integer/parseInt %)]
    ["-d" "--duration DURATION" "Duration in seconds"
     :default (t/seconds 1)
     :parse-fn #(t/seconds (Integer/parseInt %))]])
@@ -38,7 +41,8 @@
     (map #(eval (read-string %)) (split reporters-str #","))
     [s3/reporter]))
 
-(defn run-with-lambda [{:keys [simulation region bucket concurrency nodes duration timeout custom-reporters throttle]
+(defn run-with-lambda [{:keys [simulation region bucket concurrency nodes duration timeout custom-reporters throttle
+                               parallelism]
                         :as options}]
   (println "Running simulation" simulation "with options" options)
   (let [config {:region region
@@ -48,7 +52,8 @@
                 :reporters (choose-reporters custom-reporters)
                 :timeout-in-ms timeout
                 :duration duration
-                :throttle throttle}
+                :throttle throttle
+                :parallelism parallelism}
         sim (read-string simulation)]
     (if (pos? throttle)
       (rc/run-throttled-simulation sim config)
