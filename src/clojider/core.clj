@@ -23,6 +23,12 @@
    ["-t" "--timeout TIMEOUT" "Rquest timeout in milliseconds"
     :default 5000
     :parse-fn #(Integer/parseInt %)]
+   ["-i"
+    "--invocations-per-second THROTTLE"
+    "Limits invocations per second. Throttles if set to positive number. Implies no report generation."
+    :id :throttle
+    :default 0
+    :parse-fn #(Integer/parseInt %)]
    ["-d" "--duration DURATION" "Duration in seconds"
     :default (t/seconds 1)
     :parse-fn #(t/seconds (Integer/parseInt %))]])
@@ -32,15 +38,21 @@
     (map #(eval (read-string %)) (split reporters-str #","))
     [s3/reporter]))
 
-(defn run-with-lambda [{:keys [simulation region bucket concurrency nodes duration timeout custom-reporters] :as options}]
+(defn run-with-lambda [{:keys [simulation region bucket concurrency nodes duration timeout custom-reporters throttle]
+                        :as options}]
   (println "Running simulation" simulation "with options" options)
-  (rc/run-simulation (read-string simulation) {:region region
-                                               :concurrency concurrency
-                                               :node-count nodes
-                                               :bucket-name bucket
-                                               :reporters (choose-reporters custom-reporters)
-                                               :timeout-in-ms timeout
-                                               :duration duration}))
+  (let [config {:region region
+                :concurrency concurrency
+                :node-count nodes
+                :bucket-name bucket
+                :reporters (choose-reporters custom-reporters)
+                :timeout-in-ms timeout
+                :duration duration
+                :throttle throttle}
+        sim (read-string simulation)]
+    (if (pos? throttle)
+      (rc/run-throttled-simulation sim config)
+      (rc/run-simulation sim config))))
 
 (defn run-using-local-machine [{:keys [simulation region bucket concurrency duration timeout custom-reporters] :as options}]
   (println "Running simulation" simulation "with options" options)
@@ -65,4 +77,3 @@
     (if-let [cmd (get cmds cmd-str)]
       (cmd (:options options))
       (println "Unknown command:" cmd-str))))
-
