@@ -90,14 +90,20 @@
                                :nodes         node-count
                                :executor      (partial lambda-executor "clojider-load-testing-lambda")})))
 
-(defn no-op-reporter []
+(def no-op-reporter-collector
+  (fn [{:keys [context results-dir]}]
+    {:collect (constantly nil)
+     :combine (constantly nil)}))
+
+(def no-op-reporter-generator
+  (fn [{:keys [context results-dir]}]
+    {:generate (constantly nil)
+     :as-str   (constantly nil)}))
+
+(def no-op-reporter
   {:reporter-key :no-op-reporter
-   :collector    (fn [{:keys [context results-dir]}]
-                   {:collect (constantly nil)
-                    :combine (constantly nil)})
-   :generator    (fn [{:keys [context results-dir]}]
-                   {:generate (constantly nil)
-                    :as-str   (constantly nil)})})
+   :collector    'clojider.rc/no-op-reporter-collector
+   :generator    'clojider.rc/no-op-reporter-generator})
 
 (defn run-throttled-simulation [^clojure.lang.Symbol simulation
                             {:keys [concurrency
@@ -124,7 +130,7 @@
     (gatling/run simulation (-> {:context       {:region region :bucket-name bucket-name}
                                  :concurrency   concurrency
                                  :timeout-in-ms timeout-in-ms
-                                 :reporters     [(no-op-reporter)]
+                                 :reporters     [no-op-reporter]
                                  :duration      duration
                                  :nodes         node-count
                                  :parallelism   parallelism
