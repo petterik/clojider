@@ -23,7 +23,7 @@
     (fn [region]
       (let [client-config (-> (ClientConfiguration.)
                             (.withSocketTimeout (* 6 60 1000))
-                            (.withMaxConnections 2))]
+                            (.withMaxConnections 50))]
         (-> (AWSLambdaClient. @aws-credentials client-config)
           (.withRegion (Regions/fromName region)))))))
 
@@ -108,7 +108,7 @@
                                     region
                                     throttle]
                              :or {node-count 1}}]
-  (let [in (async/chan)
+  (let [in (async/chan 90000)
         lambdas-per-second throttle
         agents (vec (repeatedly lambdas-per-second #(agent nil)))]
     (go-loop []
