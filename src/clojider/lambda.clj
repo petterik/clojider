@@ -5,7 +5,8 @@
             [clj-gatling.pipeline :as pipeline]
             [clj-gatling.schema :as schema]
             [cheshire.core :refer [generate-stream parse-stream]]
-            [schema.core :as s]))
+            [schema.core :as s])
+  (:import (java.io File)))
 
 (defn- run-simulation [input]
   (let [collector-as-symbol (fn [reporter]
@@ -15,6 +16,9 @@
         options (-> (:options input)
                   (update :duration millis)
                   (assoc :results-dir (System/getProperty "java.io.tmpdir"))
+                  (assoc :error-file (-> (doto (File. (System/getProperty "java.io.tmpdir") "error.log")
+                                           (.createNewFile))
+                                       (.getAbsolutePath)))
                   (update :reporters #(map collector-as-symbol %)))]
     (pipeline/simulation-runner (read-string (:simulation input)) options)))
 
