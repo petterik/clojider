@@ -29,7 +29,7 @@
 
 (defn invoke-lambda [simulation lambda-function-name options]
   (println "Invoking Lambda for node:" (:node-id options))
-  (let [throttle? (pos? (:throttle options))
+  (let [throttle? (pos? (:throttle options 0))
         client (lambda-client (-> options :context :region))
         request (-> (InvokeRequest.)
                   (.withFunctionName lambda-function-name)
@@ -80,7 +80,8 @@
                               reporters
                               timeout-in-ms
                               duration
-                              region]
+                              region
+                              parallelism]
                        :or {node-count 1}}]
   (gatling/run simulation (-> {:context       {:region region :bucket-name bucket-name}
                                :concurrency   concurrency
@@ -88,6 +89,7 @@
                                :reporters     reporters
                                :duration      duration
                                :nodes         node-count
+                               :parallelism   parallelism
                                :executor      (partial lambda-executor "clojider-load-testing-lambda")})))
 
 (def no-op-reporter-collector
