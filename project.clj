@@ -1,4 +1,4 @@
-(defproject org.clojars.petterik/clojider "0.5.9"
+(defproject org.clojars.petterik/clojider "0.5.10"
   :description "AWS Lambda powered, distributed load testing tool for Clojure"
   :url "https://github.com/mhjort/clojider"
   :license {:name "Eclipse Public License"
@@ -6,7 +6,7 @@
   :repositories [["clojars" {:sign-releases false}]]
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [cheshire "5.5.0"]
-                 [org.clojars.petterik/clj-gatling "0.13.1"]
+                 [org.clojars.petterik/clj-gatling "0.13.2"]
                  [clojider-gatling-highcharts-s3-reporter "0.2.0"]
                  [uswitch/lambada "0.1.0"]
                  [org.clojure/tools.cli "0.3.7"]
